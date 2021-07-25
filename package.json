@@ -6,7 +6,8 @@
   "scripts": {
     "test": "npx eslint . && npm run test-mocha",
     "db-migrate-dev": "npx sequelize-cli db:migrate --env development",
-    "test-mocha": "mocha src/tests/**/*.test.js --timeout=60000 --verbose --exit"
+    "db-migrate-prod": "npx sequelize-cli db:migrate --env production",
+    "test-mocha": "mocha tests/**/*.test.js --timeout=60000 --verbose --exit"
   },
   "author": "@github/kykydz",
   "license": "ISC",

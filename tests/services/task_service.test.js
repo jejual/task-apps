@@ -2,7 +2,7 @@
 
 const expect = require('expect.js');
 const sinon = require('sinon');
-const TaskService = require('../../services/task_service');
+const TaskService = require('../../src/services/task_service');
 
 describe('Task Service', () => {
     let sandbox;
