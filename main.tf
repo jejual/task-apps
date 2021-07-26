@@ -54,11 +54,13 @@ data "google_secret_manager_secret_version" "db-connection-name" {
 }
 
 # Deploy image to Cloud Run
-resource "google_cloud_run_service" "demo-note-apps" {
+resource "google_cloud_run_service" "demo-note-app" {
 
   provider = google
-  name     = "demo-note-apps"
+  name     = "demo-note-app"
   location = "asia-southeast1"
+
+  autogenerate_revision_name = true
 
   template {
     spec {
@@ -121,19 +123,22 @@ resource "google_cloud_run_service" "demo-note-apps" {
 
     metadata {
       annotations = {
-        generated-by                            = "magic-modules"
-        "run.googleapis.com/launch-stage"       = "BETA"
+        generated-by = "magic-modules"
         "run.googleapis.com/cloudsql-instances" = var.dbsocket
         "run.googleapis.com/client-name"        = "terraform"
       }
     }
   }
 
-  autogenerate_revision_name = true
-
   traffic {
     percent         = 100
     latest_revision = true
+  }
+
+  lifecycle {
+    ignore_changes = [
+      metadata.0.annotations,
+    ]
   }
 }
 # Create public access
@@ -148,12 +153,12 @@ data "google_iam_policy" "noauth" {
 
 # Enable public access on Cloud Run service
 resource "google_cloud_run_service_iam_policy" "noauth" {
-  location    = google_cloud_run_service.demo-note-apps.location
-  project     = google_cloud_run_service.demo-note-apps.project
-  service     = google_cloud_run_service.demo-note-apps.name
+  location    = google_cloud_run_service.demo-note-app.location
+  project     = google_cloud_run_service.demo-note-app.project
+  service     = google_cloud_run_service.demo-note-app.name
   policy_data = data.google_iam_policy.noauth.policy_data
 }
 # Return service URL
 output "url" {
-  value = google_cloud_run_service.demo-note-apps.status[0].url
+  value = google_cloud_run_service.demo-note-app.status[0].url
 }

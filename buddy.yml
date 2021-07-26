@@ -1,8 +1,9 @@
-- pipeline: "Note Apps Deployment Pipeline"
+- pipeline: "note-apps-cloud-run"
   on: "CLICK"
   refs:
   - "refs/heads/master"
   priority: "NORMAL"
+  fetch_all_refs: true
   fail_on_prepare_env_warning: true
   actions:
   - action: "Execute: npm install & test"
@@ -18,14 +19,44 @@
     - "/:/buddy/task-apps"
     cache_base_image: true
     shell: "BASH"
-  - action: "Deploy to Google Cloud Run [sinuous-tuner-303004]"
-    type: "GOOGLE_CLOUD_RUN_DEPLOY"
-    service: "demo-note-apps"
-    application_name: "sinuous-tuner-303004"
-    application_display_name: "sinuous-tuner-303004"
-    region: "asia-southeast2"
-    arguments: "--add-cloudsql-instances=sinuous-tuner-303004:asia-southeast2:jejual-digipreneur-service --set-env-vars=NODE_ENV=production,DB_NAME=note,DB_DIALECT=mysql"
-    image: "gcr.io/sinuous-tuner-303004/demo-note-apps"
-    platform: "MANAGED"
-    shell: "SH"
-    integration_hash: "NDm8VvJ4open7YYEa7Az1XPYRr"
+  - action: "Terraform Provision - Cloud Run"
+    type: "BUILD"
+    working_directory: "/buddy/task-apps"
+    docker_image_name: "library/ubuntu"
+    docker_image_tag: "18.04"
+    execute_commands:
+    - "apt-get update -y"
+    - "apt-get install wget unzip -y"
+    - "wget https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.18_linux_amd64.zip"
+    - "unzip terraform_0.12.18_linux_amd64.zip"
+    - "mv terraform /usr/local/bin/"
+    - "terraform -v"
+    - ""
+    - "#terraform destroy -auto-approve"
+    - "terraform init"
+    - "terraform plan"
+    - "terraform apply -auto-approve"
+    volume_mappings:
+    - "/:/buddy/task-apps"
+    cache_base_image: true
+    shell: "BASH"
+    variables:
+    - key: "TF_VAR_creds"
+      value: "secure!4fAJ+JD50RhuR8gOgRAPf4ode1gCb2VBh2PtU9f2hOSxC3u4xIxkN402b98KGJzkhea5fKHDZlh9ZX2d3kG9DincO+g4THWLQ/84pwRy1XtRV5lxb0G9XXrutWnyKRbqKV/EmCAnG8z9ARhOxrVVdiAMGUgYQ3S0kODnii8ET4g3Zr5TGdHngdiToLSc2a5wubwB3OLuAw3QMd4ra2V/tcRNILlVmYc84pxOV4WMDa0LpxYYmy6tFOXflhPwg0cUEebvy8macq7kOdmWSMZUwDmlK5cfufMbAQvOEQM+CNCwILtkuPJ44k7aIBHpKyT2OyfFHAGd7j330cS3urvlvxbo80gi2IKWs6mdXinug6a5+OBlNiXgPm1XF4mYLluQd2UWzH47ONDhtGG5X2ETmZKb4pb/ZwxFpt/ekYGN0Q3tl4N304IvG3eKNJC67cRGmmZ3UJlm2PW6jw6sjya9vQpnY0tibgn1U1Z5SdDdKyaoHjGHPinEFP1LCBxMDdJnTZKK1ATJsWkT+q35GKTgxMqjVbb707iiGEczYy3h2p09x4fYgg85tvWTUkSMktE38cs78y7QW/KeKUa1aUsuyha6igolELISrperRAVm3BfJLxEJhLkbm5CdwX26LahW.1VJBUqH1iWkUepIWcPIgCw=="
+      type: "FILE"
+      encrypted: true
+      description: "google apps creds"
+      file_name: "TF_VAR_creds"
+      file_path: "/buddy-variables/TF_VAR_creds"
+      file_chmod: "644"
+      file_place: "CONTAINER"
+      checksum: "15c60513dcbb0e0ae1cff6d51d0a8d242ae6398c08b8503a29306db3b1ea5c07"
+  variables:
+  - key: "TF_VAR_dbpass"
+    value: "q25fcqw5q345qfvq"
+    type: "VAR"
+    description: "db password"
+  - key: "TF_VAR_dbsocket"
+    value: "sinuous-tuner-303004:asia-southeast2:jejual-digipreneur-service"
+    type: "VAR"
+    description: "cloud sql connection name"
