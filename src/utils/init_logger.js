@@ -4,7 +4,7 @@ const assert = require('assert-plus');
 const fs = require('fs');
 
 const logLocation = process.env.LOG_LOCATION || 'logs';
-const fileName = 'digipreneur_service_log';
+const fileName = 'note_apps_log';
 
 class Logger{
     constructor(env) {
